@@ -116,6 +116,57 @@ async def ask_activity(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
         f"Отвечай чётко, на русском. Используй эмодзи. "
         f"Не используй markdown-разметку (никаких *, **, #, _ и т.п.) — только обычный текст."
     )
+      try:
+        msg = client.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=2048,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        response = msg.content[0].text
+    except Exception as e:
+        logger.error(f"AI error: {e}")
+        await update.message.reply_text("❌ Ошибка при генерации плана. Попробуй /start")
+        return ConversationHandler.END
+
+    for part in response.split("|||SPLIT|||"):
+        if part.strip():
+            await update.message.reply_text(part.strip())
+
+    await update.message.reply_text("✅ Готово! Для нового расчёта — /start")
+    return ConversationHandler.END
+
+
+async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    await update.message.reply_text("Отменено. Напиши /start чтобы начать заново.", reply_markup=ReplyKeyboardRemove())
+    return ConversationHandler.END
+
+
+def main():
+    if not TELEGRAM_TOKEN:
+        raise RuntimeError("TELEGRAM_TOKEN не задан")
+    if not ANTHROPIC_API_KEY:
+        raise RuntimeError("ANTHROPIC_API_KEY не задан")
+
+    app = Application.builder().token(TELEGRAM_TOKEN).build()
+    app.add_handler(ConversationHandler(
+        entry_points=[CommandHandler("start", start)],
+        states={
+            ASK_WEIGHT:   [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_weight)],
+            ASK_HEIGHT:   [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_height)],
+            ASK_AGE:      [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_age)],
+            ASK_GENDER:   [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_gender)],
+            ASK_GOAL:     [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_goal)],
+            ASK_ACTIVITY: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_activity)],
+        },
+        fallbacks=[CommandHandler("cancel", cancel)],
+    ))
+    logger.info("Goal Body Bot запущен...")
+    app.run_polling()
+
+
+if __name__ == "__main__":
+    main()
+
 
 
 
