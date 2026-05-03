@@ -47,6 +47,40 @@ async def ask_weight(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     context.user_data["weight"] = val
     await update.message.reply_text("Введи свой *рост* (см), например: `175`", parse_mode="Markdown")
     return ASK_HEIGHT
+    async def ask_height(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    text = update.message.text.strip().replace(",", ".")
+    try:
+        val = float(text)
+        assert 100 <= val <= 250
+    except (ValueError, AssertionError):
+        await update.message.reply_text("❗ Введи корректный рост (от 100 до 250 см):")
+        return ASK_HEIGHT
+    context.user_data["height"] = val
+    await update.message.reply_text("Введи свой *возраст* (лет), например: `25`", parse_mode="Markdown")
+    return ASK_AGE
+
+
+async def ask_age(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    try:
+        val = int(update.message.text.strip())
+        assert 10 <= val <= 100
+    except (ValueError, AssertionError):
+        await update.message.reply_text("❗ Введи корректный возраст (от 10 до 100):")
+        return ASK_AGE
+    context.user_data["age"] = val
+    await update.message.reply_text("Укажи свой пол:", reply_markup=make_keyboard(GENDER_KEYBOARD))
+    return ASK_GENDER
+
+
+async def save_button_value(update, context, keyboard, key):
+    """Validates the user's button choice. Returns the value on success, None to show the keyboard again."""
+    value = update.message.text.strip()
+    if value not in valid_options(keyboard):
+        await update.message.reply_text("❗ Выбери из предложенных вариантов:", reply_markup=make_keyboard(keyboard))
+        return None
+    context.user_data[key] = value
+    return value
+
 
 
 
