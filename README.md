@@ -10,4 +10,13 @@ Telegram бот-нутрициолог. Спрашивает параметры 
 ```bash
 python3 -m venv venv
 venv/bin/pip install -r requirements.txt
+## Запуск
+
+```bash
+export TELEGRAM_TOKEN="ваш_токен"
+export ANTHROPIC_API_KEY="ваш_ключ"
+venv/bin/python bot.py
+```
+
+
 ```
