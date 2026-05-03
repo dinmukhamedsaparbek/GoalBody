@@ -80,6 +80,43 @@ async def save_button_value(update, context, keyboard, key):
         return None
     context.user_data[key] = value
     return value
+    async def ask_gender(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    if not await save_button_value(update, context, GENDER_KEYBOARD, "gender"):
+        return ASK_GENDER
+    await update.message.reply_text("🎯 Какова твоя цель?", reply_markup=make_keyboard(GOAL_KEYBOARD))
+    return ASK_GOAL
+
+
+async def ask_goal(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    if not await save_button_value(update, context, GOAL_KEYBOARD, "goal"):
+        return ASK_GOAL
+    await update.message.reply_text("🏃 Уровень физической активности?", reply_markup=make_keyboard(ACTIVITY_KEYBOARD))
+    return ASK_ACTIVITY
+
+
+async def ask_activity(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Final step: calls the AI and delivers the plan split into 4 separate messages via SPLIT."""
+    if not await save_button_value(update, context, ACTIVITY_KEYBOARD, "activity"):
+        return ASK_ACTIVITY
+
+
+    await update.message.reply_text("⏳ Составляю план питания...", reply_markup=ReplyKeyboardRemove())
+
+    d = context.user_data
+    prompt = (
+        f"Ты — профессиональный нутрициолог и фитнес-тренер. Данные пользователя:\n"
+        f"Пол: {d['gender']}, возраст: {d['age']} лет, вес: {d['weight']} кг, рост: {d['height']} см.\n"
+        f"Цель: {d['goal']}. Активность: {d['activity']}.\n\n"
+        f"Составь персональный план питания, разбив ответ ровно на 4 блока.\n"
+        f"Между каждым блоком поставь разделитель: |||SPLIT|||\n\n"
+        f"Блок 1: Суточная норма калорий (формула Миффлина-Сан Жеора + активность + цель).\n"
+        f"Блок 2: БЖУ в граммах и процентах.\n"
+        f"Блок 3: Меню на 1 день (завтрак, обед, ужин, 2 перекуса) с граммовкой и калориями.\n"
+        f"Блок 4: 3–5 рекомендаций под цель.\n\n"
+        f"Отвечай чётко, на русском. Используй эмодзи. "
+        f"Не используй markdown-разметку (никаких *, **, #, _ и т.п.) — только обычный текст."
+    )
+
 
 
 
