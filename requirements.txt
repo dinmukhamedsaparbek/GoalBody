@@ -1,1 +1,2 @@
-
+puthon_telegram_bot==21.6
+anthropi>=0.40.0
